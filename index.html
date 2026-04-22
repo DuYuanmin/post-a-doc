@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share-A-Doc | Community Forum</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <div class="logo">📝 Share-A-Doc</div>
+            <div id="auth-section">
+                <span id="userDisplay"></span>
+                <button id="loginBtn" class="btn-primary">Login with Google</button>
+                <button id="logoutBtn" class="btn-secondary" style="display:none;">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section id="editor-section" class="card shadow" style="display:none;">
+            <h2>Create a New Doc</h2>
+            <p class="subtitle">Share your thoughts with the community.</p>
+            <textarea id="docInput" placeholder="Type your document content here..."></textarea>
+            <button id="postBtn" class="btn-post">Post Document</button>
+        </section>
+
+        <section id="feed-section">
+            <div class="feed-header">
+                <h2>Community Feed</h2>
+                <p>Everything posted by users is visible here.</p>
+            </div>
+            
+            <div id="docContainer">
+                <div class="loader">Connecting to database...</div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
