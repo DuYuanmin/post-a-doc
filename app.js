@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBlsafUS59DD_JCON_gOcnE_EW5w1se_7Q",
@@ -12,75 +12,74 @@ const firebaseConfig = {
   measurementId: "G-DBP931QFWV"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const editor = document.getElementById('editor');
-const postBtn = document.getElementById('postBtn');
-const docInput = document.getElementById('docInput');
-const docContainer = document.getElementById('docContainer');
+// DOM Elements
+const loginBtn = document.getElementById('login-btn');
+const editorSection = document.getElementById('editor-section');
+const docContainer = document.getElementById('doc-container');
 
-// Auth Logic
+// --- AUTHENTICATION ---
 loginBtn.onclick = () => signInWithPopup(auth, provider);
-logoutBtn.onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        editor.style.display = 'block';
+        loginBtn.classList.add('hidden');
+        editorSection.classList.remove('hidden');
+        renderDocs(user);
     } else {
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        editor.style.display = 'none';
+        loginBtn.classList.remove('hidden');
+        editorSection.classList.add('hidden');
+        renderDocs(null);
     }
 });
 
-// Post Logic
-postBtn.onclick = async () => {
-    const content = docInput.value.trim();
-    if (!content || !auth.currentUser) return;
-    
-    try {
-        await addDoc(collection(db, "posts"), {
-            text: content,
-            uid: auth.currentUser.uid,
-            author: auth.currentUser.displayName,
-            createdAt: new Date()
+// --- CREATE DOC ---
+document.getElementById('post-btn').onclick = async () => {
+    const title = document.getElementById('doc-title').value;
+    const content = document.getElementById('doc-content').value;
+
+    if (title && content) {
+        await addDoc(collection(db, "documents"), {
+            title,
+            content,
+            authorId: auth.currentUser.uid,
+            authorName: auth.currentUser.displayName,
+            createdAt: Date.now()
         });
-        docInput.value = "";
-    } catch (err) {
-        alert("Error posting: " + err.message);
+        document.getElementById('doc-title').value = '';
+        document.getElementById('doc-content').value = '';
     }
 };
 
-// Feed Logic
-const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-onSnapshot(q, (snapshot) => {
-    docContainer.innerHTML = "";
-    snapshot.forEach((postDoc) => {
-        const data = postDoc.data();
-        const id = postDoc.id;
-        const isOwner = auth.currentUser && auth.currentUser.uid === data.uid;
+// --- READ & DELETE DOCS ---
+function renderDocs(currentUser) {
+    const q = query(collection(db, "documents"), orderBy("createdAt", "desc"));
+    
+    onSnapshot(q, (snapshot) => {
+        docContainer.innerHTML = '';
+        snapshot.forEach((d) => {
+            const data = d.data();
+            const div = document.createElement('div');
+            div.className = 'doc-card';
+            div.innerHTML = `
+                <h3>${data.title}</h3>
+                <p>${data.content}</p>
+                <small>By: ${data.authorName}</small>
+            `;
 
-        const div = document.createElement('div');
-        div.className = 'post';
-        div.innerHTML = `
-            ${isOwner ? `<button class="delete-btn" onclick="deleteItem('${id}')">Delete</button>` : ''}
-            <p>${data.text}</p>
-            <small>By ${data.author || 'Anonymous'}</small>
-        `;
-        docContainer.appendChild(div);
+            // Only show delete button if current user is the author
+            if (currentUser && currentUser.uid === data.authorId) {
+                const delBtn = document.createElement('button');
+                delBtn.innerText = "Delete";
+                delBtn.onclick = () => deleteDoc(doc(db, "documents", d.id));
+                div.appendChild(delBtn);
+            }
+            docContainer.appendChild(div);
+        });
     });
-});
-
-// Global function for delete button
-window.deleteItem = async (id) => {
-    if (confirm("Delete this post?")) {
-        await deleteDoc(doc(db, "posts", id));
-    }
-};
+}
