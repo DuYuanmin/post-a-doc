@@ -12,74 +12,94 @@ const firebaseConfig = {
   measurementId: "G-DBP931QFWV"
 };
 
-// Initialize Firebase
+// 初始化 Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// DOM Elements
+// DOM 元素
 const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const userDisplay = document.getElementById('user-display');
 const editorSection = document.getElementById('editor-section');
 const docContainer = document.getElementById('doc-container');
 
-// --- AUTHENTICATION ---
+// --- 身份验证逻辑 ---
 loginBtn.onclick = () => signInWithPopup(auth, provider);
+logoutBtn.onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
         loginBtn.classList.add('hidden');
+        userDisplay.classList.remove('hidden');
         editorSection.classList.remove('hidden');
-        renderDocs(user);
+        document.getElementById('user-name').innerText = `欢迎, ${user.displayName}`;
     } else {
         loginBtn.classList.remove('hidden');
+        userDisplay.classList.add('hidden');
         editorSection.classList.add('hidden');
-        renderDocs(null);
     }
+    loadDocuments(user);
 });
 
-// --- CREATE DOC ---
+// --- 发布文档 ---
 document.getElementById('post-btn').onclick = async () => {
     const title = document.getElementById('doc-title').value;
     const content = document.getElementById('doc-content').value;
 
-    if (title && content) {
-        await addDoc(collection(db, "documents"), {
-            title,
-            content,
-            authorId: auth.currentUser.uid,
-            authorName: auth.currentUser.displayName,
-            createdAt: Date.now()
-        });
-        document.getElementById('doc-title').value = '';
-        document.getElementById('doc-content').value = '';
+    if (title && content && auth.currentUser) {
+        try {
+            await addDoc(collection(db, "documents"), {
+                title: title,
+                content: content,
+                authorId: auth.currentUser.uid, // 必须存入这个 ID 以匹配安全规则
+                authorName: auth.currentUser.displayName,
+                createdAt: Date.now()
+            });
+            document.getElementById('doc-title').value = '';
+            document.getElementById('doc-content').value = '';
+        } catch (e) {
+            alert("Failed to post");
+        }
     }
 };
 
-// --- READ & DELETE DOCS ---
-function renderDocs(currentUser) {
+// --- 加载并渲染文档 ---
+function loadDocuments(currentUser) {
     const q = query(collection(db, "documents"), orderBy("createdAt", "desc"));
     
     onSnapshot(q, (snapshot) => {
         docContainer.innerHTML = '';
         snapshot.forEach((d) => {
             const data = d.data();
-            const div = document.createElement('div');
-            div.className = 'doc-card';
-            div.innerHTML = `
+            const card = document.createElement('div');
+            card.className = 'doc-card';
+            
+            let deleteBtnHtml = '';
+            // 如果当前登录用户是作者，显示删除按钮
+            if (currentUser && currentUser.uid === data.authorId) {
+                deleteBtnHtml = `<button class="del-btn" data-id="${d.id}">delete</button>`;
+            }
+
+            card.innerHTML = `
                 <h3>${data.title}</h3>
                 <p>${data.content}</p>
-                <small>By: ${data.authorName}</small>
+                <div class="meta">作者: ${data.authorName}</div>
+                ${deleteBtnHtml}
             `;
+            
+            docContainer.appendChild(card);
+        });
 
-            // Only show delete button if current user is the author
-            if (currentUser && currentUser.uid === data.authorId) {
-                const delBtn = document.createElement('button');
-                delBtn.innerText = "Delete";
-                delBtn.onclick = () => deleteDoc(doc(db, "documents", d.id));
-                div.appendChild(delBtn);
-            }
-            docContainer.appendChild(div);
+        // 绑定删除事件
+        document.querySelectorAll('.del-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = e.target.getAttribute('data-id');
+                if(confirm("You sure you want to delete？")) {
+                    deleteDoc(doc(db, "documents", id));
+                }
+            };
         });
     });
 }
