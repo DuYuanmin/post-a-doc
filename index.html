@@ -1,36 +1,86 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Share-A-Doc/title>
+    <title>Share-A-Doc | Global Public Forum</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav>
-        <h1>Share-A-Doc</h1>
-        <div id="auth-section">
-            <button id="login-btn"> Google</button>
-            <div id="user-display" class="hidden">
-                <span id="user-name"></span>
-                <button id="logout-btn">exit</button>
-            </div>
+
+    <header id="main-header">
+        <div class="logo-container">
+            <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" alt="Logo" width="40">
+            <h1>Share-A-Doc</h1>
         </div>
-    </nav>
+        
+        <nav id="auth-controls">
+            <button id="login-btn" class="primary-btn">Sign In with Google</button>
+            
+            <div id="user-display" class="hidden">
+                <img id="user-photo" src="" alt="Profile" class="avatar">
+                <span id="user-name">Guest</span>
+                <button id="logout-btn" class="secondary-btn">Logout</button>
+            </div>
+        </nav>
+    </header>
 
-    <main>
-        <section id="editor-section" class="hidden">
-            <h2>post</h2>
-            <input type="text" id="doc-title" placeholder="...">
-            <textarea id="doc-content" placeholder="type here..."></textarea>
-            <button id="post-btn">post to the forum</button>
-        </section>
+    <div class="app-layout">
+        <aside id="sidebar">
+            <div class="sidebar-box">
+                <h3>About this Forum</h3>
+                <p>Welcome! This is a public space where anyone can post documents. You must be logged in to create or delete your own posts.</p>
+            </div>
+            <div class="sidebar-box">
+                <h3>Stats</h3>
+                <p>Status: <span id="connection-status">Online</span></p>
+                <p>Database: <span id="db-mode">Production Mode</span></p>
+            </div>
+        </aside>
 
-        <section id="feed-section">
-            <h2>all docs</h2>
-            <div id="doc-container">laoding...</div>
-        </section>
-    </main>
+        <main id="content-area">
+            
+            <section id="editor-section" class="hidden">
+                <div class="card editor-card">
+                    <h2>Create a Document</h2>
+                    <div class="input-group">
+                        <label for="doc-title">Headline Title</label>
+                        <input type="text" id="doc-title" placeholder="Give your document a catchy title...">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="doc-content">Body Content</label>
+                        <textarea id="doc-content" placeholder="Share your knowledge or start a discussion..."></textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button id="post-btn" class="success-btn">Publish to Forum</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="filter-section">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Search documents...">
+                </div>
+            </section>
+
+            <section id="feed-section">
+                <div class="feed-header">
+                    <h2>Public Feed</h2>
+                    <p>Sorted by: Newest First</p>
+                </div>
+                
+                <div id="doc-container">
+                    <div class="loading-spinner">Connecting to Firestore...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Share-A-Doc Project. Built with Firebase and GitHub Pages.</p>
+    </footer>
 
     <script type="module" src="app.js"></script>
 </body>
