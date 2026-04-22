@@ -1,34 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Share-A-Doc | Public Forum</title>
+    <title>Share-A-Doc 公共论坛</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <nav>
         <h1>Share-A-Doc</h1>
         <div id="auth-section">
-            <button id="login-btn">Login with Google</button>
-            <span id="user-info" class="hidden"></span>
-            <button id="logout-btn" class="hidden">Logout</button>
+            <button id="login-btn">使用 Google 登录</button>
+            <div id="user-display" class="hidden">
+                <span id="user-name"></span>
+                <button id="logout-btn">退出</button>
+            </div>
         </div>
     </nav>
 
     <main>
         <section id="editor-section" class="hidden">
-            <h2>Create a New Document</h2>
-            <input type="text" id="doc-title" placeholder="Title">
-            <textarea id="doc-content" placeholder="Write your thoughts here..."></textarea>
-            <button id="post-btn">Post Document</button>
+            <h2>发布新文档</h2>
+            <input type="text" id="doc-title" placeholder="请输入标题...">
+            <textarea id="doc-content" placeholder="在此输入内容..."></textarea>
+            <button id="post-btn">发布到论坛</button>
         </section>
 
         <section id="feed-section">
-            <h2>Public Documents</h2>
-            <div id="doc-container">
-                </div>
+            <h2>所有文档</h2>
+            <div id="doc-container">加载中...</div>
         </section>
     </main>
 
